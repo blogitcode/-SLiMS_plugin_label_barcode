@@ -1,4 +1,4 @@
-# Plugin print label call number including barcode item for SLiMS
+# Plugin print Label & Barcode
 Plugin print label call number including barcode item for SLiMS
 ## How to install plugin
 - Download the plugin, extract and upload to plugins folder in the source code SliMS;
