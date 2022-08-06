@@ -306,6 +306,8 @@ HTML;
                 <form name="search" action="<?= $_SERVER['PHP_SELF'] . '?' . httpQuery() ?>" id="search" method="get"
                       class="form-inline"><?php echo __('Search'); ?>
                     <input type="text" name="keywords" class="form-control col-md-3"/>
+					<input type="text" name="startItem" placeholder="ID bắt đầu" class="form-control col-md-2" />
+					<input type="text" name="untilItem" placeholder="ID kết thúc" class="form-control col-md-2" />
                     <input type="submit" id="doSearch" value="<?php echo __('Search'); ?>"
                            class="s-btn btn btn-default"/>
                 </form>
@@ -346,13 +348,22 @@ if ($sysconf['index']['type'] == 'index' || ($sysconf['index']['type'] == 'sphin
             'IF(item.call_number<>\'\', item.call_number, index.call_number) AS `' . __('Call Number') . '`', 'item.item_code AS `' . __('Item Code') . '`');
     }
 } else {
-    require LIB . 'biblio_list.inc.php';
+    //require LIB . 'biblio_list.inc.php';
     // table spec
-    $table_spec = 'biblio LEFT JOIN item ON biblio.biblio_id=item.biblio_id';
-    if ($can_read) {
+    //$table_spec = 'biblio LEFT JOIN item ON biblio.biblio_id=item.biblio_id';
+    /*if ($can_read) {
         $datagrid->setSQLColumn('IF(item.item_id IS NOT NULL, item.item_id, CONCAT(\'b\', biblio.biblio_id))', 'biblio.title AS `' . __('Title') . '`',
             'IF(item.call_number<>\'\', item.call_number, biblio.call_number) AS `' . __('Call Number') . '`', 'item.item_code AS `' . __('Item Code') . '`');
-    }
+		
+    }*/
+	require LIB.'biblio_list.inc.php';
+  // table spec
+  $table_spec = 'item LEFT JOIN biblio ON item.biblio_id=biblio.biblio_id';
+  $datagrid->setSQLColumn(
+    'IF(item.item_id IS NOT NULL, item.item_id, CONCAT(\'b\', biblio.biblio_id))', 'biblio.title AS `' . __('Title') . '`',
+	'IF(item.call_number<>\'\', item.call_number, biblio.call_number) AS `' . __('Call Number') . '`',
+    'item.item_code AS \''.__('Item Code').'\'',
+	'item.item_id AS \''.__('ID').'\'');
 }
 $datagrid->setSQLorder('item.last_update DESC');
 // is there any search
@@ -372,6 +383,12 @@ if (isset($_GET['keywords']) AND $_GET['keywords']) {
     $criteria = $biblio_list->setSQLcriteria($search_str);
 }
 $criteria_str = 'item.item_code IS NOT NULL';
+if ((isset($_GET['startItem']) && $_GET['startItem'] != '' )&& (isset($_GET['untilItem']) && $_GET['untilItem'] != '' )) {
+        $startItem = $dbs->escape_string($_GET['startItem']);
+		$untilItem = $dbs->escape_string($_GET['untilItem']);
+		$criteria_str .= ' AND item.item_id BETWEEN ' . $startItem . ' AND ' . $untilItem;	
+}
+
 if (isset($criteria)) {
     $criteria_str .= ' AND (' . $criteria['sql_criteria'] . ')';
 }
